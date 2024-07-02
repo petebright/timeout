@@ -1,0 +1,24 @@
+---
+- name: Update sshd configuration
+  hosts: all
+  become: yes
+  tasks:
+    - name: Check if tmout.sh exists
+      stat:
+        path: /etc/profile.d/tmout.sh
+      register: tmout_file_stat
+    - name: Create tmout.sh if it doesn't exist
+      copy:
+        dest: /etc/profile.d/tmout.sh
+        content: |
+          TMOUT=7200
+          export TMOUT
+          readonly TMOUT
+        mode: 0644
+      when: not tmout_file_stat.stat.exists
+    - name: Edit tmout.sh to set TMOUT
+      lineinfile:
+        path: /etc/profile.d/tmout.sh
+        regexp: "^TMOUT="
+        line: TMOUT=7200
+      when: tmout_file_stat.stat.exists
